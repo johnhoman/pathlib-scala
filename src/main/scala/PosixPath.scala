@@ -35,18 +35,23 @@ class PosixPath(args: String*) {
     }
 
     def parent: PosixPath = {
-        // need deferred evaluation to avoid recursion
+        // need deferred evaluation to avoid "infinite" recursion
+        if (parts.length > 1) {
 
         // TODO: ?? if path **has no** parent
-        val pieces = parts.slice(0, parts.length - 1)
-        var base = (new PosixPath(pieces: _*)).toString()
-        if (anchor != null) {
-            base = anchor + base
+            val pieces = parts.slice(0, parts.length - 1)
+            var base = (new PosixPath(pieces: _*)).toString()
+            if (anchor != null) {
+                base = anchor + base
+            }
+            if (drive.isDefined) {
+                base = drive.get + driveDelim + base
+            }
+            new PosixPath(base)
+        } else {
+            throw new InvalidPathException(this.toString(),
+                                           "path has no parent")
         }
-        if (drive.isDefined) {
-            base = drive.get + driveDelim + base
-        }
-        new PosixPath(base)
       }
 
     def joinpath(path: String): PosixPath = {
